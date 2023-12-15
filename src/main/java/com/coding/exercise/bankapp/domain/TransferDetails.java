@@ -12,8 +12,20 @@ import lombok.Setter;
 public class TransferDetails {
 
 	private Long fromAccountNumber;
-	
+
 	private Long toAccountNumber;
-	
+
 	private Double transferAmount;
+
+	public void setAmount(double v) {
+		transferAmount = v;
+	}
+
+	public void setSourceAccount(long l) {
+		toAccountNumber = l;
+	}
+
+	public void setDestinationAccount(long l) {
+		fromAccountNumber = l;
+	}
 }

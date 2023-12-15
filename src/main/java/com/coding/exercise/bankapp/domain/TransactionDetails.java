@@ -1,12 +1,8 @@
 package com.coding.exercise.bankapp.domain;
 
-import java.util.Date;
+import lombok.*;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.Date;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,10 +12,18 @@ import lombok.Setter;
 public class TransactionDetails {
 
 	private Long accountNumber;
-	
+
 	private Date txDateTime;
-	
+
 	private String txType;
-	
+
+	public void setTransactionType(String txType) {
+		this.txType = txType;
+	}
+
+	public void setAmount(Double txAmount) {
+		this.txAmount = txAmount;
+	}
+
 	private Double txAmount;
 }

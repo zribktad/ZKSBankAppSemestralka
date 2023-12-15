@@ -1,31 +1,25 @@
 package com.coding.exercise.bankapp.service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
+import com.coding.exercise.bankapp.domain.AccountInformation;
+import com.coding.exercise.bankapp.domain.CustomerDetails;
+import com.coding.exercise.bankapp.domain.TransactionDetails;
+import com.coding.exercise.bankapp.domain.TransferDetails;
+import com.coding.exercise.bankapp.model.*;
+import com.coding.exercise.bankapp.service.helper.BankingServiceHelper;
+import com.coding.exercise.bankapp.service.repository.AccountRepository;
+import com.coding.exercise.bankapp.service.repository.CustomerAccountXRefRepository;
+import com.coding.exercise.bankapp.service.repository.CustomerRepository;
+import com.coding.exercise.bankapp.service.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.coding.exercise.bankapp.domain.AccountInformation;
-import com.coding.exercise.bankapp.domain.CustomerDetails;
-import com.coding.exercise.bankapp.domain.TransactionDetails;
-import com.coding.exercise.bankapp.domain.TransferDetails;
-import com.coding.exercise.bankapp.model.Account;
-import com.coding.exercise.bankapp.model.Address;
-import com.coding.exercise.bankapp.model.Contact;
-import com.coding.exercise.bankapp.model.Customer;
-import com.coding.exercise.bankapp.model.CustomerAccountXRef;
-import com.coding.exercise.bankapp.model.Transaction;
-import com.coding.exercise.bankapp.repository.AccountRepository;
-import com.coding.exercise.bankapp.repository.CustomerAccountXRefRepository;
-import com.coding.exercise.bankapp.repository.CustomerRepository;
-import com.coding.exercise.bankapp.repository.TransactionRepository;
-import com.coding.exercise.bankapp.service.helper.BankingServiceHelper;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional

@@ -11,5 +11,7 @@ import java.util.Optional;
 public interface TransactionRepository extends CrudRepository<Transaction, String> {
 
     public Optional<List<Transaction>> findByAccountNumber(Long accountNumber);
+
+    public void deleteAll();
     
 }

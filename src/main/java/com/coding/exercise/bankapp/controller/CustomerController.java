@@ -24,6 +24,10 @@ public class CustomerController {
 	@Autowired
 	private BankingServiceImpl bankingService;
 
+	public void deleteRepository() {
+		bankingService.deleteRepository();
+	}
+
 	@GetMapping(path = "/all")
 	@ApiOperation(value = "Find all customers", notes = "Gets details of all the customers")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),

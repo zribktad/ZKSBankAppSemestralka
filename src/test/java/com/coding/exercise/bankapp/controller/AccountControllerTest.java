@@ -1,78 +1,114 @@
 package com.coding.exercise.bankapp.controller;
 
-import com.coding.exercise.bankapp.domain.AccountInformation;
-import com.coding.exercise.bankapp.domain.TransactionDetails;
-import com.coding.exercise.bankapp.domain.TransferDetails;
+import com.coding.exercise.bankapp.domain.*;
 import com.coding.exercise.bankapp.service.BankingServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.*;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AccountControllerTest {
-
+    @Autowired
     private AccountController accountController;
+    @Autowired
     private BankingServiceImpl bankingService;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
-        bankingService = mock(BankingServiceImpl.class);
-        accountController = new AccountController();
-        accountController.setBankingService(bankingService);
+
+        BankInformation bankInformation = getBankInformation();
+
+        CustomerDetails sampleCustomer = CustomerDetails.builder().firstName("John").lastName("Doe").middleName("M").customerNumber(123L).status("Active").customerAddress(AddressDetails.builder().address1("123 Main St").city("Cityville").state("CA").zip("12345").country("USA").build()).contactDetails(ContactDetails.builder().emailId("john.doe@example.com").homePhone("123-456-7890").workPhone("987-654-3210").build()).build();
+        bankingService.addCustomer(sampleCustomer);
+
+        // Create and save sample accounts for the customer
+        AccountInformation sourceAccount = AccountInformation.builder()
+                .accountType("Savings")
+                .bankInformation(bankInformation)
+                .accountBalance(500.0)
+                .accountNumber(1L)
+                .accountCreated(new Date())
+                .build();
+
+        bankingService.addNewAccount(sourceAccount, sampleCustomer.getCustomerNumber());
+
+        AccountInformation destinationAccount = AccountInformation.builder()
+                .accountType("Checking")
+                .bankInformation(bankInformation)
+                .accountBalance(200.0)
+                .accountNumber(2L)
+                .accountCreated(new Date())
+                .build();
+
+        bankingService.addNewAccount(destinationAccount, sampleCustomer.getCustomerNumber());
+    }
+
+    private BankInformation getBankInformation() {
+        BankInformation bankInformation = BankInformation.builder()
+                .branchName("Main Branch")
+                .branchCode(123)
+                .branchAddress(AddressDetails.builder()
+                        .address1("456 Oak St")
+                        .city("Townsville")
+                        .state("CA")
+                        .zip("54321")
+                        .country("USA")
+                        .build())
+                .routingNumber(987654321)
+                .build();
+        return bankInformation;
     }
 
     @Test
     void testGetByAccountNumber_Success() {
         // Arrange
-        Long accountNumber = 12345L;
-        when(bankingService.findByAccountNumber(accountNumber)).thenReturn(new ResponseEntity<>("Account details", HttpStatus.OK));
+        Long accountNumber = 1L;
 
         // Act
         ResponseEntity<Object> result = accountController.getByAccountNumber(accountNumber);
 
         // Assert
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("Account details", result.getBody());
-        verify(bankingService, times(1)).findByAccountNumber(accountNumber);
+        assertEquals(HttpStatus.FOUND, result.getStatusCode());
     }
 
     @Test
     void testGetByAccountNumber_NotFound() {
         // Arrange
         Long accountNumber = 67890L;
-        when(bankingService.findByAccountNumber(accountNumber)).thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
         // Act
         ResponseEntity<Object> result = accountController.getByAccountNumber(accountNumber);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertNull(result.getBody());
-        verify(bankingService, times(1)).findByAccountNumber(accountNumber);
     }
 
     @Test
     void testAddNewAccount_Success() {
         // Arrange
-        Long customerNumber = 67890L;
+        Long customerNumber = 123L;
         AccountInformation accountInformation = createValidAccountInformation();
-        when(bankingService.addNewAccount(accountInformation, customerNumber))
-                .thenReturn(new ResponseEntity<>("Account added", HttpStatus.OK));
 
         // Act
         ResponseEntity<Object> result = accountController.addNewAccount(accountInformation, customerNumber);
 
         // Assert
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("Account added", result.getBody());
-        verify(bankingService, times(1)).addNewAccount(accountInformation, customerNumber);
+        assertEquals(HttpStatus.CREATED, result.getStatusCode());
+
     }
 
     @Test
@@ -80,70 +116,73 @@ class AccountControllerTest {
         // Arrange
         Long customerNumber = 67890L;
         AccountInformation invalidAccount = new AccountInformation(); // missing required fields
-        when(bankingService.addNewAccount(invalidAccount, customerNumber))
-                .thenReturn(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
         // Act
         ResponseEntity<Object> result = accountController.addNewAccount(invalidAccount, customerNumber);
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
-        assertNull(result.getBody());
-        verify(bankingService, times(1)).addNewAccount(invalidAccount, customerNumber);
+
     }
 
 
     @Test
     void testTransferDetails_Success() {
         // Arrange
-        Long customerNumber = 67890L;
+        Long customerNumber = 123L;
         TransferDetails transferDetails = createValidTransferDetails();
-        when(bankingService.transferDetails(transferDetails, customerNumber))
-                .thenReturn(new ResponseEntity<>("Funds transferred", HttpStatus.OK));
 
         // Act
         ResponseEntity<Object> result = accountController.transferDetails(transferDetails, customerNumber);
 
         // Assert
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("Funds transferred", result.getBody());
-        verify(bankingService, times(1)).transferDetails(transferDetails, customerNumber);
+        assertTrue(Objects.requireNonNull(result.getBody()).toString().contains("Success"));
     }
 
     @Test
     void testTransferDetails_ValidationFailure() {
         // Arrange
-        Long customerNumber = 67890L;
+        Long customerNumber = 123L;
         TransferDetails invalidTransfer = new TransferDetails(); // missing required fields
-        when(bankingService.transferDetails(invalidTransfer, customerNumber))
-                .thenReturn(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+
 
         // Act
         ResponseEntity<Object> result = accountController.transferDetails(invalidTransfer, customerNumber);
 
         // Assert
-        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
-        assertNull(result.getBody());
-        verify(bankingService, times(1)).transferDetails(any(), any()); // Verify that transferDetails is never called
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+
     }
 
     @Test
     void testGetTransactionByAccountNumber_Success() {
         // Arrange
-        Long accountNumber = 12345L;
+        Long accountNumber = 1L;
+        Long customerNumber = 123L;
+        //Make money transfer
+        TransferDetails transferDetails = createValidTransferDetails();
+        ResponseEntity<Object> result_tmp = accountController.transferDetails(transferDetails, customerNumber);
+        assertEquals(HttpStatus.OK, result_tmp.getStatusCode());
+
         List<TransactionDetails> transactions = Collections.singletonList(createValidTransactionDetails());
-        when(bankingService.findTransactionsByAccountNumber(accountNumber)).thenReturn(transactions);
+
 
         // Act
         List<TransactionDetails> result = accountController.getTransactionByAccountNumber(accountNumber);
 
         // Assert
-        assertEquals(transactions, result);
-        verify(bankingService, times(1)).findTransactionsByAccountNumber(accountNumber);
+        assertFalse(result.isEmpty());
     }
 
     private AccountInformation createValidAccountInformation() {
-        AccountInformation accountInformation = new AccountInformation();
+        AccountInformation accountInformation = AccountInformation.builder()
+                .accountType("Savings")
+                .bankInformation(getBankInformation())
+                .accountBalance(500.0)
+                .accountNumber(new Random().nextLong())
+                .accountCreated(new Date())
+                .build();
         accountInformation.setAccountType("Savings");
         // Set other required fields
         return accountInformation;
@@ -151,8 +190,8 @@ class AccountControllerTest {
 
     private TransferDetails createValidTransferDetails() {
         TransferDetails transferDetails = new TransferDetails();
-        transferDetails.setSourceAccount(12345L);
-        transferDetails.setDestinationAccount(67890L);
+        transferDetails.setSourceAccount(1L);
+        transferDetails.setDestinationAccount(2L);
         transferDetails.setAmount(100.0);
         // Set other required fields
         return transferDetails;

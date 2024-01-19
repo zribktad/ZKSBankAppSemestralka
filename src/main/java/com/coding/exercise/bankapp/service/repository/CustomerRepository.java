@@ -10,5 +10,7 @@ import java.util.Optional;
 public interface CustomerRepository extends CrudRepository<Customer, String> {
 
     public Optional<Customer> findByCustomerNumber(Long customerNumber);
+
+    public void deleteAll();
     
 }
